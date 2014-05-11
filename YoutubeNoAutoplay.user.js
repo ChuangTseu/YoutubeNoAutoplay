@@ -8,10 +8,6 @@
 // ==/UserScript==
 
 function contentEval(source) {
-  if ('function' == typeof source) {
-    source = '(' + source + ')();'
-  }
-
   var script = document.createElement('script');
   script.setAttribute("type", "application/javascript");
   script.textContent = source;
@@ -20,8 +16,33 @@ function contentEval(source) {
   document.body.removeChild(script);
 }
 
-//Using HTML5 Player
-if (document.querySelector(".html5-video-player")) {
+function ytplayerStateChanged(newState) {
+    console.log("newState: " + newState);
+    console.log("toBlock: " + ytplayerStateChanged.toBlock);
+    
+    if (ytplayerStateChanged.toBlock) {
+        ytplayerStateChanged.toBlock = false;
+        ytplayerStateChanged.ytplayer.pauseVideo();            
+    }
+    
+    if (newState == -1) {
+        ytplayerStateChanged.toBlock = true;
+    }
+}
+
+contentEval('' + ytplayerStateChanged);
+
+function onYouTubePlayerReady(playerId) { 
+    if (document.querySelector(".html5-video-player")) { 
+        onYouTubePlayerReadyHTML5(playerId); 
+    }
+    else {
+        onYouTubePlayerReadyFlash(playerId); 
+    }    
+};
+
+
+if (document.querySelector(".html5-video-player")) { //Using HTML5 Player
 	console.log("HTML5 Player");
 	
     function simulateClick(element)
@@ -32,19 +53,33 @@ if (document.querySelector(".html5-video-player")) {
 
     var playButton = document.querySelector(".ytp-button-pause");
         
-    while (null == playButton) {    	
-        playButton = document.querySelector(".ytp-button-pause");        
+    if (playButton) {
+        simulateClick(playButton);   
     }
     
-    simulateClick(playButton);
+    function onYouTubePlayerReadyHTML5(playerId) {
+        var ytplayer = playerId;
+        
+        console.log("ytplayer: " + ytplayer);
+
+        ytplayer.pauseVideo();
+        
+        ytplayerStateChanged.toBlock = false;
+        ytplayerStateChanged.ytplayer = ytplayer;
+        
+        ytplayer.addEventListener("onStateChange", "ytplayerStateChanged");              
+	}
+        
+	//Cross browser method, unsafeWindow totally supported only on Firefox
+	contentEval('' + simulateClick);
+    contentEval('' + onYouTubePlayerReadyHTML5);
+	contentEval('' + onYouTubePlayerReady);
 }
-//Using Flash Player
-else if (document.querySelector("#player-api")) {
+else if (document.querySelector("#player-api")) { //Using Flash Player
 	console.log("Flash Player");
 	
 	function replaceFlashPlayerWithNoAutoplay() {
 		var moviePlayer = document.querySelector("#movie_player");
-		var autoplayStr = "&autoplay=0";
 	
 		var flashVars = moviePlayer.getAttributeNode("flashvars");
 		flashVars.value = flashVars.value + "&autoplay=0";
@@ -56,21 +91,29 @@ else if (document.querySelector("#player-api")) {
 		playerDiv.innerHTML = embeddedFlashHTML;
 	}
 	
-	function onYouTubePlayerReady() {
+	function onYouTubePlayerReadyFlash(playerId) {
+        onYouTubePlayerReady = undefined;
+        
 		replaceFlashPlayerWithNoAutoplay();
-		onYouTubePlayerReady = undefined;
+        
+        var ytplayer = playerId;
+        
+        console.log("ytplayer: " + ytplayer);
+
+        ytplayer.pauseVideo();
+        
+        ytplayerStateChanged.toBlock = false;
+        ytplayerStateChanged.ytplayer = ytplayer;
+        
+        ytplayer.addEventListener("onStateChange", "ytplayerStateChanged");		
 	}
-	
+    	
 	//Cross browser method, unsafeWindow totally supported only on Firefox
 	contentEval('' + replaceFlashPlayerWithNoAutoplay);
-	contentEval('' + onYouTubePlayerReady);
-	
-	//unsafeWindow.onYouTubePlayerReady = function() {
-	//	replaceFlashPlayerWithNoAutoplay(); 
-	//	unsafeWindow.onYouTubePlayerReady = null;
-	//};	
+    contentEval('' + onYouTubePlayerReadyFlash);
+	contentEval('' + onYouTubePlayerReady);	
 }
-//Not on a video page
-else {
+else { //Not on a video page
 	console.log("No Player");
 }
+
