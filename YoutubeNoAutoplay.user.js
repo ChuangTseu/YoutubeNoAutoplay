@@ -79,12 +79,26 @@ else if (document.querySelector("#player-api")) { //Using Flash Player
 	console.log("Flash Player");
 	
 	function replaceFlashPlayerWithNoAutoplay() {
-		var moviePlayer = document.querySelector("#movie_player");
+		//On channel presentation page
+		var moviePlayer = document.querySelector("#c4-player");
+		
+		if (!moviePlayer) {
+			//On classic video page
+			moviePlayer = document.querySelector("#movie_player");
+		}		
 	
 		var flashVars = moviePlayer.getAttributeNode("flashvars");
+		flashVars.value.replace("&autoplay=1", "");
 		flashVars.value = flashVars.value + "&autoplay=0";
 	
-		var playerDiv = document.querySelector("#player-api");
+		//On channel presentation page
+		var playerDiv = document.querySelector("#upsell-video");
+		
+		if (!playerDiv) {
+			//On classic video page
+			playerDiv = document.querySelector("#player-api");
+		}
+		
 		embeddedFlashHTML = playerDiv.innerHTML;
 		
 		playerDiv.innerHTML = " ";
