@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        YoutubeHtml5Blocker
+// @name        YoutubeNoAutoplay
 // @namespace   localhost
 // @include     http://www.youtube.com/*
 // @include     https://www.youtube.com/*
