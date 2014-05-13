@@ -88,7 +88,7 @@ else if (document.querySelector("#player-api")) { //Using Flash Player
 		}		
 	
 		var flashVars = moviePlayer.getAttributeNode("flashvars");
-		flashVars.value.replace("&autoplay=1", "");
+		flashVars.value = flashVars.value.replace("&autoplay=1", "");
 		flashVars.value = flashVars.value + "&autoplay=0";
 	
 		//On channel presentation page
